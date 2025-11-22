@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Dibujos - VectorDraw</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">VectorDraw <span style="font-size: 0.8rem;">v1.0</span></div>
+        <div class="user-controls">
+            <span id="userDisplay">Usuario</span>
+            <button onclick="logout()" class="btn" style="background:#d9534f; margin-left:10px;">Salir</button>
+        </div>
+    </nav>
+
+    <div style="padding: 20px 40px; display:flex; justify-content:space-between;">
+        <h2>Mis Proyectos</h2>
+        <button class="btn" onclick="window.location.href='editor.html'">+ Nuevo Dibujo</button>
+    </div>
+
+    <div class="gallery-grid" id="projectsGrid">
+        <div class="card" style="color: #666;">Sin proyectos recientes</div>
+    </div>
+
+<script src="js/config.js"></script>
+<script>
+    const grid = document.getElementById('projectsGrid');
+    const userDisplay = document.getElementById('userDisplay');
+
+    async function initDashboard() {
+    
+    const rawToken = localStorage.getItem('vector_token');
+    const username = localStorage.getItem('vector_user');
+
+    console.log("Token bruto en localStorage:", rawToken);
+    
+    const token = (rawToken || '').replace(/^['"]+|['"]+$/g, '').trim();
+
+    console.log("Token limpio:", token);
+    console.log("Usuario:", username);
+
+    // Validación extra: ¿se ve como un JWT?
+    if (!token || !/^[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$/.test(token)) {
+        console.error("❌ El token NO parece un JWT válido.");
+        document.body.innerHTML = `
+            <h1 style="color:red">DEBUG: Token inválido en localStorage</h1>
+            <p>Reinicia sesión para obtener un token nuevo.</p>
+        `;
+        return;
+    }
+
+    userDisplay.innerText = username || 'Usuario';
+
+    try {
+        console.log(`Intentando Fetch a: ${CONFIG.API_URL}/drawings`);
+        
+        const response = await fetch(`${CONFIG.API_URL}/drawings`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log("Status respuesta:", response.status);
+
+        if (response.status === 401) {
+            throw new Error("Error 401: Token inválido o expirado (Unauthorized)");
+        }
+        
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Error del servidor (${response.status}): ${text}`);
+        }
+
+        const drawings = await response.json();
+        console.log("Dibujos cargados:", drawings);
+        renderDrawings(drawings);
+
+    } catch (error) {
+        console.error("CRITICAL ERROR:", error);
+        document.body.style.background = "#111";
+        document.body.style.color = "#ff5555";
+        document.body.style.padding = "50px";
+        document.body.innerHTML = `
+            <h1>Error Fatal Detectado</h1>
+            <h3>No te redirigí para que puedas ver esto:</h3>
+            <pre style="background:#333; padding:20px; border:1px solid red; font-size: 1.2rem;">${error.message}</pre>
+            <p>Abre la consola (F12) para ver más detalles.</p>
+            <button onclick="window.location.href='index.html'" style="padding:10px; cursor:pointer;">Volver al Login Manualmente</button>
+        `;
+    }
+}
+
+
+function renderDrawings(drawings) {
+    if (!Array.isArray(drawings) || drawings.length === 0) {
+        grid.innerHTML = '<div class="card" style="color: #666;">Sin proyectos. ¡Crea uno!</div>';
+        return;
+    }
+
+    grid.innerHTML = '';
+
+    drawings.forEach(d => {
+        const drawingId = d._id;
+        const titleText = d.title || 'Sin Título';
+        const svgRaw = d.svgContent || null;
+        const ts = d.updatedAt || d.createdAt || null;
+
+        let dateText = '';
+        if (ts) {
+            const dt = new Date(ts);
+            dateText = dt.toLocaleString('es-MX', {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        const card = document.createElement('div');
+        card.className = 'card project-card';
+
+        const preview = document.createElement('div');
+        preview.className = 'preview-container';
+
+        if (svgRaw) {
+            const img = document.createElement('img');
+            img.className = 'preview-img';
+            img.alt = 'Vista previa';
+            img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgRaw);
+            preview.appendChild(img);
+        } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'preview-placeholder';
+            placeholder.innerText = 'Sin vista previa';
+            preview.appendChild(placeholder);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'card-body';
+
+        const title = document.createElement('h4');
+        title.className = 'project-title';
+        title.innerText = titleText;
+
+        const date = document.createElement('small');
+        date.className = 'project-date';
+        date.innerText = dateText
+            ? `Última actualización: ${dateText}`
+            : '';
+
+        const actions = document.createElement('div');
+        actions.className = 'project-actions';
+
+        const openBtn = document.createElement('button');
+        openBtn.innerText = 'Abrir';
+        openBtn.className = 'btn';
+        openBtn.style.fontSize = '0.8rem';
+        openBtn.style.padding = '5px 14px';
+        openBtn.onclick = () => {
+            if (!drawingId) {
+                alert("Error: este dibujo no tiene id");
+                return;
+            }
+            window.location.href = `editor.html?id=${drawingId}`;
+        };
+
+        const delBtn = document.createElement('button');
+        delBtn.innerText = '🗑️';
+        delBtn.className = 'trash-btn';
+        delBtn.title = 'Eliminar';
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (drawingId) deleteDrawing(drawingId);
+        };
+
+        actions.appendChild(openBtn);
+        actions.appendChild(delBtn);
+
+        body.appendChild(title);
+        body.appendChild(date);
+        body.appendChild(actions);
+
+        card.appendChild(preview);
+        card.appendChild(body);
+
+        grid.appendChild(card);
+    });
+}
+
+
+
+   async function deleteDrawing(id) {
+    if(!confirm("¿Seguro?")) return;
+
+    const rawToken = localStorage.getItem('vector_token');
+    const token = (rawToken || '').replace(/^['"]+|['"]+$/g, '').trim();
+
+    await fetch(`${CONFIG.API_URL}/drawings/${id}`, {
+        method: 'DELETE',
+        headers: { 
+            'Authorization': `Bearer ${token}` 
+        }
+    });
+
+    initDashboard(); 
+}
+
+    function logout() {
+        localStorage.removeItem('vector_token');
+        localStorage.removeItem('vector_user');
+        
+        window.location.href = 'index.html';
+    }
+
+
+    initDashboard();
+</script>
+</body>
+
+</html>

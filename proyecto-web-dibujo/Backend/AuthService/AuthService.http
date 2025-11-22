@@ -1,0 +1,25 @@
+@host = http://localhost:5163
+@token = 
+
+### Register
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "tilin",
+  "email": "tilin@example.com",
+  "password": "123456"
+}
+
+### Login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "tilin",
+  "password": "123456"
+}
+
+### Me
+GET {{host}}/api/auth/me
+Authorization: Bearer {{token}}

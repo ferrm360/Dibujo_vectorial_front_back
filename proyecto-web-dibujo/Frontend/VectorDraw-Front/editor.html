@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor Vectorial Pro</title>
+    <link rel="stylesheet" href="/css/style.css">
+    </head>
+<body>
+    <nav class="navbar" style="height: 50px;">
+        <button onclick="window.location.href='dashboard.html'" class="btn" style="background:transparent; border:1px solid #555;">&larr; Volver</button>
+        <div>
+            <input type="file" id="bgLoader" accept="image/*" style="display:none">
+            <button class="btn" onclick="document.getElementById('bgLoader').click()">🖼️ Cargar Fondo</button>
+            <button id="saveBtn" class="btn">💾 Guardar</button>
+        </div>
+    </nav>
+
+    <div class="editor-layout">
+        <aside class="toolbar">
+    <div class="tool-group">
+        <button class="tool-btn active" data-tool="select" data-key="1" title="Seleccionar (Tecla 1)">👆</button>
+        
+        <button class="tool-btn" data-tool="line" data-key="2" title="Línea (Tecla 2)">📏</button>
+        
+        <button class="tool-btn" data-tool="rect" data-key="3" title="Rectángulo (Tecla 3)">⬜</button>
+        
+        <button class="tool-btn" data-tool="square" data-key="4" title="Cuadrado (Tecla 4)">⬛</button>
+        
+        <button class="tool-btn" data-tool="ellipse" data-key="5" title="Elipse (Tecla 5)">⬭</button>
+        
+        <button class="tool-btn" data-tool="circle" data-key="6" title="Círculo (Tecla 6)">⚪</button>
+        
+        <button class="tool-btn" data-tool="polygon" data-key="7" title="Polígono (Tecla 7)">🔷</button>
+        
+        <button class="tool-btn" data-tool="star" data-key="8" title="Estrella (Tecla 8)">⭐</button>
+    </div>
+
+    <div style="margin-top: auto; padding-bottom: 10px;">
+        <button class="tool-btn" id="deleteBtn" title="Eliminar (Tecla SUPR / DELETE)" style="color: #d9534f;">🗑️</button>
+    </div>
+</aside>
+
+        <main class="canvas-area">
+            <svg id="drawing-board" width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#eee" stroke-width="0.5"/>
+                    </pattern>
+                </defs>
+                
+                <g id="bgLayer"></g>
+                
+                <g id="mainLayer"></g>
+            </svg>
+        </main>
+
+        <aside class="properties-panel" style="display:flex; flex-direction:column;">
+            
+            <div style="flex: 0 0 auto;">
+                <h3>Propiedades</h3>
+                <hr style="border-color: #444; margin: 10px 0;">
+                
+                <div class="prop-group">
+                    <label>Relleno</label>
+                    <input type="color" id="fillColor" value="#007acc" style="width:100%">
+                </div>
+                <div class="prop-group">
+                    <label>Borde</label>
+                    <input type="color" id="strokeColor" value="#000000" style="width:100%">
+                </div>
+                <div class="prop-group">
+                    <label>Grosor: <span id="swVal">2</span>px</label>
+                    <input type="range" id="strokeWidth" min="0" max="20" value="2" style="width:100%">
+                </div>
+                
+                <div class="prop-group" id="geoControls" style="display:none;">
+                    <label>Geometría (Ancho / Alto / Radio)</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="geoW" placeholder="W/Rx" style="width:50%; background:#333; color:white; border:1px solid #555">
+                        <input type="number" id="geoH" placeholder="H/Ry" style="width:50%; background:#333; color:white; border:1px solid #555">
+                    </div>
+                </div>
+                
+                <div class="prop-group" id="sidesControl">
+                    <label>Lados (Polígonos/Estrellas)</label>
+                    <input type="number" id="numSides" min="3" max="20" value="5" style="width:100%; background:#333; color:white; border:1px solid #555">
+                </div>
+            </div>
+
+            <div style="flex: 1; overflow-y: auto; margin-top: 20px; border-top: 1px solid #444; padding-top:10px;">
+                <h3>Capas</h3>
+                <ul id="layersList" style="list-style: none; padding: 0;">
+                    </ul>
+            </div>
+        </aside>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/editor.js"></script>
+</body>
+</html>

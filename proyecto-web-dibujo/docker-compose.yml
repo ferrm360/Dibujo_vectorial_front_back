@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  mongo-db:
+    image: mongo:7
+    container_name: mongo-db
+    restart: always
+    ports:
+      - "27030:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-net
+
+  auth-service:
+    build:
+      context: ./Backend/authService
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: always
+    depends_on:
+      - mongo-db
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      Jwt__Key: "ESTA_ES_LA_SUPER_CLAVE_SECRETA_COMPARTIDA_12345_MUY_LARGA"
+      Jwt__Issuer: "VectorDrawAuthService"
+      Jwt__Audience: "VectorDrawFrontend"
+      MongoDb__ConnectionString: "mongodb://root:example@mongo-db:27017/?authSource=admin"
+    ports:
+      - "5163:8080"
+    networks:
+      - backend-net
+
+  drawing-service:
+    build:
+      context: ./Backend/DrawingService
+      dockerfile: Dockerfile
+    container_name: drawing-service
+    restart: always
+    depends_on:
+      - mongo-db
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      Jwt__Key: "ESTA_ES_LA_SUPER_CLAVE_SECRETA_COMPARTIDA_12345_MUY_LARGA"
+      Jwt__Issuer: "VectorDrawAuthService"
+      Jwt__Audience: "VectorDrawFrontend"
+      MongoDb__ConnectionString: "mongodb://root:example@mongo-db:27017/?authSource=admin"
+    ports:
+      - "5173:8080"
+    networks:
+      - backend-net
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Backend/nginx/Dockerfile
+    container_name: nginx
+    restart: always
+    depends_on:
+      - auth-service
+      - drawing-service
+    ports:
+      - "8080:80"
+    networks:
+      - backend-net
+
+networks:
+  backend-net:
+
+volumes:
+  mongo-data:

@@ -1,0 +1,35 @@
+@authHost = http://localhost:5163
+@drawHost = http://localhost:5173
+@token = 
+
+POST {{authHost}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "tilin",
+  "password": "123456"
+}
+
+GET {{drawHost}}/api/drawings
+Authorization: Bearer {{token}}
+
+POST {{drawHost}}/api/drawings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Mi primer dibujo",
+  "svgContent": "<svg><circle cx='50' cy='50' r='40' /></svg>"
+}
+
+PUT {{drawHost}}/api/drawings/{id}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Dibujo modificado",
+  "svgContent": "<svg><rect x='10' y='10' width='80' height='80' /></svg>"
+}
+
+DELETE {{drawHost}}/api/drawings/{id}
+Authorization: Bearer {{token}}
