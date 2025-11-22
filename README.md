@@ -11,7 +11,7 @@ Proyecto de dibujo vectorial basado en arquitectura de microservicios (.NET 9 + 
 
 1.  Clona el repositorio y entra a la carpeta del proyecto:
     ```bash
-    git clone <URL_DEL_REPO>
+    git clone https://github.com/ferrm360/Dibujo_vectorial_front_back.git
     cd proyecto-web-dibujo
     ```
 
@@ -29,3 +29,4 @@ Una vez que terminen de levantarse los contenedores:
 2.  Ingresa a: **http://localhost:8080**
 
 3.  Crea una cuenta nueva desde la opción "Registrarse" y comienza a crear dibujos.
+
